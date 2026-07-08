@@ -12,7 +12,7 @@ Adafruit_NeoPixel led(1, 48, NEO_GRB + NEO_KHZ800);
 
 void setLED(uint8_t r, uint8_t g, uint8_t b) {
     led.setPixelColor(0, led.Color(r, g, b));
-    led.setBrightness(33);
+    led.setBrightness(50);
     led.show();
 }
 
@@ -26,6 +26,7 @@ USBHIDMouse Mouse;
 
 // Forward declarations
 void pressModifierKey(String key);
+void executeScript(String script);
 
 // ---------- Modern Web Page ----------
 String html() {
@@ -92,6 +93,14 @@ String html() {
             color: #333;
             resize: vertical;
             margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .script-textarea {
+            height: 200px;
+            background: rgba(0,0,0,0.3);
+            color: #00ff00;
+            border: 1px solid rgba(0,255,0,0.3);
         }
         
         .keyboard {
@@ -283,6 +292,10 @@ String html() {
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
         
+        .send-btn.green {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
         .status {
             text-align: center;
             margin: 20px 0;
@@ -309,6 +322,52 @@ String html() {
             margin: 10px auto;
         }
         
+        .command-list {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .command-list.visible {
+            display: block;
+        }
+        
+        .command-item {
+            padding: 5px;
+            margin: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+        
+        .command-category {
+            color: #ffa500;
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .toggle-commands-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: block;
+            margin: 10px auto;
+        }
+        
+        .toggle-commands-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
         @media (max-width: 600px) {
             h1 { font-size: 1.8em; }
             .key { padding: 6px 5px; font-size: 11px; min-width: 28px; }
@@ -323,6 +382,102 @@ String html() {
         
         <!-- Status Display -->
         <div id="status" class="status"></div>
+        
+        <!-- Script Input -->
+        <div class="card">
+            <h2>📜 HID Script</h2>
+            <p style="font-size: 14px; margin-bottom: 10px;">Enter commands line by line. Each line executes one action.</p>
+            <textarea id="scriptArea" class="script-textarea" placeholder="TYPE:Hello World
+ENTER
+DELAY:500
+TYPE:This is automated!
+ENTER
+MOUSE:10,20
+CLICK:LEFT
+COMBO:CTRL+C
+WAIT:1000
+TYPE:Pasted!"></textarea>
+            <div style="text-align: center;">
+                <button class="send-btn green" onclick="executeScript()">▶️ Execute Script</button>
+                <button class="toggle-commands-btn" onclick="toggleCommands()">📖 Show/Hide Commands</button>
+            </div>
+            
+            <!-- Command Reference -->
+            <div id="commandList" class="command-list">
+                <div class="command-category">📝 Text & Typing:</div>
+                <div class="command-item">TYPE:text - Type the specified text</div>
+                <div class="command-item">KEY:a - Press a single character key</div>
+                <div class="command-item">STRING:text - Alternative to TYPE</div>
+                
+                <div class="command-category">⌨️ Special Keys:</div>
+                <div class="command-item">ENTER - Press Enter</div>
+                <div class="command-item">TAB - Press Tab</div>
+                <div class="command-item">SPACE - Press Space</div>
+                <div class="command-item">BACKSPACE - Press Backspace</div>
+                <div class="command-item">DELETE - Press Delete</div>
+                <div class="command-item">ESCAPE/ESC - Press Escape</div>
+                <div class="command-item">CAPSLOCK - Toggle Caps Lock</div>
+                <div class="command-item">MENU - Context menu (Shift+F10)</div>
+                
+                <div class="command-category">🔧 Function Keys:</div>
+                <div class="command-item">F1 to F12 - Press function key</div>
+                
+                <div class="command-category">🧭 Navigation:</div>
+                <div class="command-item">HOME - Go to Home</div>
+                <div class="command-item">END - Go to End</div>
+                <div class="command-item">PAGEUP/PGUP - Page Up</div>
+                <div class="command-item">PAGEDOWN/PGDN - Page Down</div>
+                <div class="command-item">INSERT/INS - Insert</div>
+                <div class="command-item">PRINTSCREEN/PRTSC - Print Screen</div>
+                <div class="command-item">SCROLLLOCK - Scroll Lock</div>
+                <div class="command-item">PAUSE - Pause/Break</div>
+                
+                <div class="command-category">⬆️ Arrow Keys:</div>
+                <div class="command-item">UP - Arrow Up</div>
+                <div class="command-item">DOWN - Arrow Down</div>
+                <div class="command-item">LEFT - Arrow Left</div>
+                <div class="command-item">RIGHT - Arrow Right</div>
+                
+                <div class="command-category">🎯 Modifier Keys:</div>
+                <div class="command-item">CTRL - Left Control</div>
+                <div class="command-item">SHIFT - Left Shift</div>
+                <div class="command-item">ALT - Left Alt</div>
+                <div class="command-item">GUI/WIN/CMD - Windows/Command key</div>
+                <div class="command-item">ALTGR - Right Alt (AltGr)</div>
+                
+                <div class="command-category">⚡ Key Combinations:</div>
+                <div class="command-item">COMBO:CTRL+C - Copy</div>
+                <div class="command-item">COMBO:CTRL+V - Paste</div>
+                <div class="command-item">COMBO:CTRL+X - Cut</div>
+                <div class="command-item">COMBO:CTRL+Z - Undo</div>
+                <div class="command-item">COMBO:CTRL+A - Select All</div>
+                <div class="command-item">COMBO:CTRL+S - Save</div>
+                <div class="command-item">COMBO:ALT+TAB - Switch windows</div>
+                <div class="command-item">COMBO:CTRL+ALT+DEL - Secure attention</div>
+                <div class="command-item">COMBO:WIN+R - Run dialog</div>
+                <div class="command-item">COMBO:WIN+E - File Explorer</div>
+                
+                <div class="command-category">🖱️ Mouse Control:</div>
+                <div class="command-item">MOUSE:x,y - Move mouse by x,y pixels</div>
+                <div class="command-item">CLICK:LEFT - Left mouse click</div>
+                <div class="command-item">CLICK:RIGHT - Right mouse click</div>
+                <div class="command-item">CLICK:MIDDLE - Middle mouse click</div>
+                
+                <div class="command-category">⏱️ Timing:</div>
+                <div class="command-item">DELAY:ms - Wait for milliseconds</div>
+                <div class="command-item">WAIT:ms - Same as DELAY</div>
+                
+                <div class="command-category">📋 Examples:</div>
+                <div class="command-item">TYPE:Hello World</div>
+                <div class="command-item">ENTER</div>
+                <div class="command-item">DELAY:500</div>
+                <div class="command-item">COMBO:CTRL+A</div>
+                <div class="command-item">COMBO:CTRL+C</div>
+                <div class="command-item">WAIT:1000</div>
+                <div class="command-item">MOUSE:100,50</div>
+                <div class="command-item">CLICK:LEFT</div>
+            </div>
+        </div>
         
         <!-- Modifier Keys and Layout -->
         <div class="card">
@@ -365,7 +520,6 @@ String html() {
         <!-- Navigation & Arrow Keys -->
         <div class="card">
             <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                <!-- Navigation Keys -->
                 <div>
                     <h3>Navigation</h3>
                     <div class="key-row">
@@ -385,7 +539,6 @@ String html() {
                     </div>
                 </div>
                 
-                <!-- Arrow Keys -->
                 <div>
                     <h3>Arrow Keys</h3>
                     <div class="nav-arrows">
@@ -403,9 +556,7 @@ String html() {
         <!-- Full Keyboard -->
         <div class="card">
             <h2>⌨️ Main Keyboard</h2>
-            <div class="keyboard" id="keyboard">
-                <!-- Keyboard will be dynamically generated -->
-            </div>
+            <div class="keyboard" id="keyboard"></div>
         </div>
         
         <!-- Mouse Controls -->
@@ -462,83 +613,53 @@ String html() {
     
     <script>
         let activeModifiers = new Set();
-        let currentLayout = 'qwertz'; // Default layout
+        let currentLayout = 'qwertz';
         
-        // Keyboard layouts with different states
+        // Keyboard layouts (same as before)
         const layouts = {
             qwertz: {
                 normal: [
-                    // Row 1: Numbers
                     ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß', '´', {key: 'backspace', label: '⌫', special: true, wide: true}],
-                    // Row 2: QWERTZ
                     [{key: 'tab', label: 'Tab', special: true, wide: true}, 'q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', 'ü', '+'],
-                    // Row 3: ASDF
                     [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
-                    // Row 4: YXCV
                     [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'y', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '-', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
-                    // Row 5: Space
                     [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
                 ],
                 shift: [
-                    // Row 1: Numbers with shift
                     ['°', '!', '"', '§', '$', '%', '&', '/', '(', ')', '=', '?', '`', {key: 'backspace', label: '⌫', special: true, wide: true}],
-                    // Row 2: QWERTZ with shift
                     [{key: 'tab', label: 'Tab', special: true, wide: true}, 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü', '*'],
-                    // Row 3: ASDF with shift
                     [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
-                    // Row 4: YXCV with shift
                     [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'Y', 'X', 'C', 'V', 'B', 'N', 'M', ';', ':', '_', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
-                    // Row 5: Space
                     [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
                 ],
                 altgr: [
-                    // Row 1: Numbers with AltGr
                     ['`', '1', '²', '³', '4', '5', '6', '{', '[', ']', '}', '\\', '´', {key: 'backspace', label: '⌫', special: true, wide: true}],
-                    // Row 2: QWERTZ with AltGr
                     [{key: 'tab', label: 'Tab', special: true, wide: true}, '@', 'w', '€', 'r', 't', 'z', 'u', 'i', 'o', 'p', 'ü', '~'],
-                    // Row 3: ASDF with AltGr
                     [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
-                    // Row 4: YXCV with AltGr
                     [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'y', 'x', 'c', 'v', 'b', 'n', 'µ', ',', '.', '-', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
-                    // Row 5: Space
                     [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
                 ]
             },
             qwerty: {
                 normal: [
-                    // Row 1: Numbers
                     ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', {key: 'backspace', label: '⌫', special: true, wide: true}],
-                    // Row 2: QWERTY
                     [{key: 'tab', label: 'Tab', special: true, wide: true}, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'],
-                    // Row 3: ASDF
                     [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
-                    // Row 4: ZXCV
                     [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
-                    // Row 5: Space
                     [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
                 ],
                 shift: [
-                    // Row 1: Numbers with shift
                     ['~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', {key: 'backspace', label: '⌫', special: true, wide: true}],
-                    // Row 2: QWERTY with shift
                     [{key: 'tab', label: 'Tab', special: true, wide: true}, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}'],
-                    // Row 3: ASDF with shift
                     [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
-                    // Row 4: ZXCV with shift
                     [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
-                    // Row 5: Space
                     [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
                 ],
                 altgr: [
-                    // Row 1: Numbers with AltGr (US International)
                     ['`', '¡', '™', '£', '¢', '∞', '§', '¶', '•', 'ª', 'º', '–', '≠', {key: 'backspace', label: '⌫', special: true, wide: true}],
-                    // Row 2: QWERTY with AltGr
                     [{key: 'tab', label: 'Tab', special: true, wide: true}, 'œ', '∑', '´', '®', '†', '¥', '¨', 'ˆ', 'ø', 'π', '«', '»'],
-                    // Row 3: ASDF with AltGr
                     [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'å', 'ß', '∂', 'ƒ', '©', '˙', '∆', '˚', '¬', '…', 'æ', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
-                    // Row 4: ZXCV with AltGr
                     [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'Ω', '≈', 'ç', '√', '∫', '˜', 'µ', '≤', '≥', '÷', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
-                    // Row 5: Space
                     [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
                 ]
             }
@@ -583,7 +704,6 @@ String html() {
             const keyboardDiv = document.getElementById('keyboard');
             let layoutState = 'normal';
             
-            // Determine which layout state to show
             if (activeModifiers.has('altgr')) {
                 layoutState = 'altgr';
             } else if (activeModifiers.has('shift')) {
@@ -597,7 +717,6 @@ String html() {
                 keyboardHTML += '<div class="key-row">';
                 row.forEach(keyData => {
                     if (typeof keyData === 'object') {
-                        // Special key
                         let classes = 'key';
                         if (keyData.special) classes += ' special';
                         if (keyData.wide) classes += ' wide';
@@ -618,7 +737,6 @@ String html() {
                         
                         keyboardHTML += `<button class="${classes}" ${onClick} ${style}>${keyData.label}</button>`;
                     } else {
-                        // Regular character key
                         keyboardHTML += `<button class="key" onclick="sendKey('${keyData}')">${keyData}</button>`;
                     }
                 });
@@ -626,6 +744,47 @@ String html() {
             });
             
             keyboardDiv.innerHTML = keyboardHTML;
+        }
+        
+        function toggleCommands() {
+            const cmdList = document.getElementById('commandList');
+            cmdList.classList.toggle('visible');
+        }
+        
+        async function executeScript() {
+            const script = document.getElementById('scriptArea').value;
+            if (!script.trim()) {
+                showStatus('❌ Script is empty!');
+                return;
+            }
+            
+            const lines = script.split('\n');
+            showStatus('▶️ Executing script...');
+            
+            for (const line of lines) {
+                const trimmedLine = line.trim();
+                if (!trimmedLine || trimmedLine.startsWith('#')) continue;
+                
+                try {
+                    const response = await fetch('/script', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: 'command=' + encodeURIComponent(trimmedLine)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Server error');
+                    }
+                    
+                    // Small delay between commands
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                } catch (error) {
+                    showStatus('❌ Error executing: ' + trimmedLine);
+                    return;
+                }
+            }
+            
+            showStatus('✅ Script executed successfully!');
         }
         
         async function sendKey(key) {
@@ -734,7 +893,7 @@ String html() {
             }, 2000);
         }
         
-        // Mouse pad touch/drag support
+        // Mouse pad
         const mousePad = document.getElementById('mousePad');
         let lastX, lastY;
         
@@ -762,7 +921,6 @@ String html() {
             mousePad.style.cursor = 'crosshair';
         });
         
-        // Touch support for mobile
         mousePad.addEventListener('touchstart', (e) => {
             e.preventDefault();
             lastX = e.touches[0].clientX;
@@ -778,7 +936,6 @@ String html() {
             lastY = e.touches[0].clientY;
         });
         
-        // Keyboard shortcuts for modifiers
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Control' && !e.repeat) toggleModifier('ctrl');
             if (e.key === 'Shift' && !e.repeat) toggleModifier('shift');
@@ -817,28 +974,177 @@ void pressModifierKey(String key) {
     else if (key.length() == 1) Keyboard.press(key[0]);
 }
 
+// ---------- Execute Script Command ----------
+void executeScript(String command) {
+    command.trim();
+    if (command.length() == 0 || command.startsWith("#")) return;
+    
+    int colonPos = command.indexOf(':');
+    String cmd = command;
+    String arg = "";
+    
+    if (colonPos > 0) {
+        cmd = command.substring(0, colonPos);
+        arg = command.substring(colonPos + 1);
+    }
+    
+    cmd.toUpperCase();
+    arg.trim();
+    
+    Serial.println("Script command: " + cmd + " Arg: " + arg);
+    
+    // Text commands
+    if (cmd == "TYPE" || cmd == "STRING") {
+        if (arg.length() > 0) {
+            Keyboard.print(arg);
+        }
+    }
+    // Special keys
+    else if (cmd == "ENTER") Keyboard.write(KEY_RETURN);
+    else if (cmd == "TAB") Keyboard.write(KEY_TAB);
+    else if (cmd == "SPACE") Keyboard.write(' ');
+    else if (cmd == "BACKSPACE") Keyboard.write(KEY_BACKSPACE);
+    else if (cmd == "DELETE" || cmd == "DEL") Keyboard.write(KEY_DELETE);
+    else if (cmd == "ESCAPE" || cmd == "ESC") Keyboard.write(KEY_ESC);
+    else if (cmd == "CAPSLOCK") Keyboard.write(KEY_CAPS_LOCK);
+    else if (cmd == "MENU") {
+        Keyboard.press(KEY_LEFT_SHIFT);
+        Keyboard.write(KEY_F10);
+        Keyboard.release(KEY_LEFT_SHIFT);
+    }
+    
+    // Function keys
+    else if (cmd == "F1") Keyboard.write(KEY_F1);
+    else if (cmd == "F2") Keyboard.write(KEY_F2);
+    else if (cmd == "F3") Keyboard.write(KEY_F3);
+    else if (cmd == "F4") Keyboard.write(KEY_F4);
+    else if (cmd == "F5") Keyboard.write(KEY_F5);
+    else if (cmd == "F6") Keyboard.write(KEY_F6);
+    else if (cmd == "F7") Keyboard.write(KEY_F7);
+    else if (cmd == "F8") Keyboard.write(KEY_F8);
+    else if (cmd == "F9") Keyboard.write(KEY_F9);
+    else if (cmd == "F10") Keyboard.write(KEY_F10);
+    else if (cmd == "F11") Keyboard.write(KEY_F11);
+    else if (cmd == "F12") Keyboard.write(KEY_F12);
+    
+    // Navigation
+    else if (cmd == "HOME") Keyboard.write(KEY_HOME);
+    else if (cmd == "END") Keyboard.write(KEY_END);
+    else if (cmd == "PAGEUP" || cmd == "PGUP") Keyboard.write(KEY_PAGE_UP);
+    else if (cmd == "PAGEDOWN" || cmd == "PGDN") Keyboard.write(KEY_PAGE_DOWN);
+    else if (cmd == "INSERT" || cmd == "INS") Keyboard.write(KEY_INSERT);
+    else if (cmd == "PRINTSCREEN" || cmd == "PRTSC") Keyboard.write(KEY_F13);
+    else if (cmd == "SCROLLLOCK") Keyboard.write(KEY_F14);
+    else if (cmd == "PAUSE") Keyboard.write(KEY_F15);
+    
+    // Arrow keys
+    else if (cmd == "UP") Keyboard.write(KEY_UP_ARROW);
+    else if (cmd == "DOWN") Keyboard.write(KEY_DOWN_ARROW);
+    else if (cmd == "LEFT") Keyboard.write(KEY_LEFT_ARROW);
+    else if (cmd == "RIGHT") Keyboard.write(KEY_RIGHT_ARROW);
+    
+    // Modifier keys (press and release)
+    else if (cmd == "CTRL") {
+        Keyboard.press(KEY_LEFT_CTRL);
+        Keyboard.release(KEY_LEFT_CTRL);
+    }
+    else if (cmd == "SHIFT") {
+        Keyboard.press(KEY_LEFT_SHIFT);
+        Keyboard.release(KEY_LEFT_SHIFT);
+    }
+    else if (cmd == "ALT") {
+        Keyboard.press(KEY_LEFT_ALT);
+        Keyboard.release(KEY_LEFT_ALT);
+    }
+    else if (cmd == "GUI" || cmd == "WIN" || cmd == "CMD") {
+        Keyboard.press(KEY_LEFT_GUI);
+        Keyboard.release(KEY_LEFT_GUI);
+    }
+    else if (cmd == "ALTGR") {
+        Keyboard.press(KEY_RIGHT_ALT);
+        Keyboard.release(KEY_RIGHT_ALT);
+    }
+    
+    // Key combinations
+    else if (cmd == "COMBO") {
+        if (arg.length() > 0) {
+            // Parse combo keys separated by +
+            String keys[10];
+            int keyCount = 0;
+            int start = 0;
+            int plusPos = arg.indexOf('+');
+            
+            while (plusPos > 0 && keyCount < 10) {
+                keys[keyCount] = arg.substring(start, plusPos);
+                keys[keyCount].trim();
+                keys[keyCount].toUpperCase();
+                keyCount++;
+                start = plusPos + 1;
+                plusPos = arg.indexOf('+', start);
+            }
+            // Last key
+            keys[keyCount] = arg.substring(start);
+            keys[keyCount].trim();
+            keys[keyCount].toUpperCase();
+            keyCount++;
+            
+            // Press all keys
+            for (int i = 0; i < keyCount; i++) {
+                pressModifierKey(keys[i]);
+            }
+            delay(50);
+            Keyboard.releaseAll();
+        }
+    }
+    
+    // Mouse commands
+    else if (cmd == "MOUSE") {
+        if (arg.length() > 0) {
+            int commaPos = arg.indexOf(',');
+            if (commaPos > 0) {
+                int x = arg.substring(0, commaPos).toInt();
+                int y = arg.substring(commaPos + 1).toInt();
+                Mouse.move(x, y, 0);
+            }
+        }
+    }
+    else if (cmd == "CLICK") {
+        if (arg == "LEFT") Mouse.click(MOUSE_LEFT);
+        else if (arg == "RIGHT") Mouse.click(MOUSE_RIGHT);
+        else if (arg == "MIDDLE") Mouse.click(MOUSE_MIDDLE);
+    }
+    
+    // Timing
+    else if (cmd == "DELAY" || cmd == "WAIT") {
+        int ms = arg.toInt();
+        if (ms > 0 && ms <= 10000) { // Max 10 seconds
+            delay(ms);
+        }
+    }
+    
+    // Single character
+    else if (cmd.length() == 1) {
+        Keyboard.write(cmd[0]);
+    }
+}
+
 // ---------- Handle keyboard key ----------
 void handleKey() {
     if (server.hasArg("key")) {
         String key = server.arg("key");
         String modifiers = server.arg("modifiers");
         
-        // Press all active modifiers
         if (modifiers.indexOf("ctrl") >= 0) Keyboard.press(KEY_LEFT_CTRL);
         if (modifiers.indexOf("shift") >= 0) Keyboard.press(KEY_LEFT_SHIFT);
         if (modifiers.indexOf("alt") >= 0) Keyboard.press(KEY_LEFT_ALT);
         if (modifiers.indexOf("gui") >= 0) Keyboard.press(KEY_LEFT_GUI);
         if (modifiers.indexOf("altgr") >= 0) Keyboard.press(KEY_RIGHT_ALT);
         
-        // Send the key
         if (key.length() == 1) {
             Keyboard.write(key[0]);
         }
         
-        // Release all modifiers
         Keyboard.releaseAll();
-        
-        Serial.println("Key: " + key + " Modifiers: " + modifiers);
     }
     server.send(200, "text/plain", "OK");
 }
@@ -849,14 +1155,12 @@ void handleSpecial() {
         String key = server.arg("key");
         String modifiers = server.arg("modifiers");
         
-        // Press all active modifiers
         if (modifiers.indexOf("ctrl") >= 0) Keyboard.press(KEY_LEFT_CTRL);
         if (modifiers.indexOf("shift") >= 0) Keyboard.press(KEY_LEFT_SHIFT);
         if (modifiers.indexOf("alt") >= 0) Keyboard.press(KEY_LEFT_ALT);
         if (modifiers.indexOf("gui") >= 0) Keyboard.press(KEY_LEFT_GUI);
         if (modifiers.indexOf("altgr") >= 0) Keyboard.press(KEY_RIGHT_ALT);
         
-        // Function keys
         if (key == "f1") Keyboard.write(KEY_F1);
         else if (key == "f2") Keyboard.write(KEY_F2);
         else if (key == "f3") Keyboard.write(KEY_F3);
@@ -869,34 +1173,19 @@ void handleSpecial() {
         else if (key == "f10") Keyboard.write(KEY_F10);
         else if (key == "f11") Keyboard.write(KEY_F11);
         else if (key == "f12") Keyboard.write(KEY_F12);
-        
-        // Navigation keys - using alternative key codes
-        else if (key == "printscreen") {
-            // Print Screen - often works with Shift+F13 or just send the key
-            Keyboard.write(KEY_F13); // Some systems use F13 for Print Screen
-        }
-        else if (key == "scrolllock") {
-            // Scroll Lock
-            Keyboard.write(KEY_F14); // Some systems use F14 for Scroll Lock
-        }
-        else if (key == "pause") {
-            // Pause/Break
-            Keyboard.write(KEY_F15); // Some systems use F15 for Pause
-        }
+        else if (key == "printscreen") Keyboard.write(KEY_F13);
+        else if (key == "scrolllock") Keyboard.write(KEY_F14);
+        else if (key == "pause") Keyboard.write(KEY_F15);
         else if (key == "insert") Keyboard.write(KEY_INSERT);
         else if (key == "home") Keyboard.write(KEY_HOME);
         else if (key == "pageup") Keyboard.write(KEY_PAGE_UP);
         else if (key == "delete") Keyboard.write(KEY_DELETE);
         else if (key == "end") Keyboard.write(KEY_END);
         else if (key == "pagedown") Keyboard.write(KEY_PAGE_DOWN);
-        
-        // Arrow keys
         else if (key == "up") Keyboard.write(KEY_UP_ARROW);
         else if (key == "down") Keyboard.write(KEY_DOWN_ARROW);
         else if (key == "left") Keyboard.write(KEY_LEFT_ARROW);
         else if (key == "right") Keyboard.write(KEY_RIGHT_ARROW);
-        
-        // Other special keys
         else if (key == "enter") Keyboard.write(KEY_RETURN);
         else if (key == "tab") Keyboard.write(KEY_TAB);
         else if (key == "backspace") Keyboard.write(KEY_BACKSPACE);
@@ -908,16 +1197,12 @@ void handleSpecial() {
         else if (key == "gui") Keyboard.write(KEY_LEFT_GUI);
         else if (key == "altgr") Keyboard.write(KEY_RIGHT_ALT);
         else if (key == "menu") {
-            // Simulate menu key with Shift+F10
             Keyboard.press(KEY_LEFT_SHIFT);
             Keyboard.write(KEY_F10);
             Keyboard.release(KEY_LEFT_SHIFT);
         }
         
-        // Release all modifiers
         Keyboard.releaseAll();
-        
-        Serial.println("Special: " + key + " Modifiers: " + modifiers);
     }
     server.send(200, "text/plain", "OK");
 }
@@ -926,26 +1211,29 @@ void handleSpecial() {
 void handleCombo() {
     if (server.hasArg("keys")) {
         String keysStr = server.arg("keys");
-        
-        // Parse comma-separated keys
         int start = 0;
         int end = keysStr.indexOf(',');
         
-        // Press all keys in combo
         while (end >= 0) {
             String key = keysStr.substring(start, end);
             pressModifierKey(key);
             start = end + 1;
             end = keysStr.indexOf(',', start);
         }
-        // Last key
         String lastKey = keysStr.substring(start);
         pressModifierKey(lastKey);
         
         delay(50);
         Keyboard.releaseAll();
-        
-        Serial.println("Combo: " + keysStr);
+    }
+    server.send(200, "text/plain", "OK");
+}
+
+// ---------- Handle script commands ----------
+void handleScript() {
+    if (server.hasArg("command")) {
+        String command = server.arg("command");
+        executeScript(command);
     }
     server.send(200, "text/plain", "OK");
 }
@@ -959,22 +1247,12 @@ void handleMouse() {
             int x = server.arg("x").toInt();
             int y = server.arg("y").toInt();
             Mouse.move(x, y, 0);
-            Serial.printf("Mouse move: %d, %d\n", x, y);
         }
         else if (type == "click") {
             String button = server.arg("button");
-            if (button == "left") {
-                Mouse.click(MOUSE_LEFT);
-                Serial.println("Mouse left click");
-            }
-            else if (button == "right") {
-                Mouse.click(MOUSE_RIGHT);
-                Serial.println("Mouse right click");
-            }
-            else if (button == "middle") {
-                Mouse.click(MOUSE_MIDDLE);
-                Serial.println("Mouse middle click");
-            }
+            if (button == "left") Mouse.click(MOUSE_LEFT);
+            else if (button == "right") Mouse.click(MOUSE_RIGHT);
+            else if (button == "middle") Mouse.click(MOUSE_MIDDLE);
         }
     }
     server.send(200, "text/plain", "OK");
@@ -985,7 +1263,6 @@ void handleType() {
     if (server.hasArg("text")) {
         String text = server.arg("text");
         Keyboard.print(text);
-        Serial.println("Sent text: " + text);
     }
     server.send(200, "text/plain", "OK");
 }
@@ -995,25 +1272,22 @@ void setup() {
     Serial.begin(115200);
     
     led.begin();
-    setLED(255, 0, 0);   // Red on startup
+    setLED(255, 0, 0);
     
-    // USB HID
     USB.begin();
     Keyboard.begin();
     Mouse.begin();
     
     delay(1000);
     
-    // Start WiFi AP
     WiFi.softAP(ssid, password);
     
     Serial.println();
     Serial.println("WiFi started");
     Serial.print("IP Address: ");
     Serial.println(WiFi.softAPIP());
-    setLED(0, 0, 255);   // Blue when ready
+    setLED(0, 0, 255);
     
-    // Web server routes
     server.on("/", HTTP_GET, []() {
         server.send(200, "text/html", html());
     });
@@ -1021,6 +1295,7 @@ void setup() {
     server.on("/key", HTTP_POST, handleKey);
     server.on("/special", HTTP_POST, handleSpecial);
     server.on("/combo", HTTP_POST, handleCombo);
+    server.on("/script", HTTP_POST, handleScript);
     server.on("/mouse", HTTP_POST, handleMouse);
     server.on("/type", HTTP_POST, handleType);
     
@@ -1029,7 +1304,6 @@ void setup() {
     Serial.println("Open http://" + WiFi.softAPIP().toString() + " in your browser");
 }
 
-// ---------- Loop ----------
 void loop() {
     server.handleClient();
 }
