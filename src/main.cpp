@@ -52,7 +52,7 @@ String html() {
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
         }
         
@@ -61,6 +61,14 @@ String html() {
             margin: 30px 0;
             font-size: 2.5em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        h2 {
+            margin-bottom: 15px;
+        }
+        
+        h3 {
+            margin: 15px 0 10px 0;
         }
         
         .card {
@@ -81,6 +89,7 @@ String html() {
             border: none;
             border-radius: 10px;
             background: rgba(255,255,255,0.9);
+            color: #333;
             resize: vertical;
             margin: 10px 0;
         }
@@ -96,20 +105,22 @@ String html() {
             display: flex;
             gap: 3px;
             justify-content: center;
+            flex-wrap: wrap;
         }
         
         .key {
             background: rgba(255,255,255,0.2);
             border: 1px solid rgba(255,255,255,0.3);
             color: white;
-            padding: 10px 12px;
+            padding: 8px 10px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.2s;
-            min-width: 40px;
+            min-width: 38px;
             text-align: center;
             user-select: none;
+            white-space: nowrap;
         }
         
         .key:hover {
@@ -123,16 +134,31 @@ String html() {
         }
         
         .key.wide {
-            min-width: 60px;
+            min-width: 55px;
         }
         
         .key.extra-wide {
-            min-width: 80px;
+            min-width: 75px;
         }
         
         .key.special {
             background: rgba(100,150,255,0.3);
+            font-size: 11px;
+        }
+        
+        .key.fkey {
+            background: rgba(150,100,255,0.3);
             font-size: 12px;
+        }
+        
+        .key.navkey {
+            background: rgba(100,200,150,0.3);
+        }
+        
+        .key.arrowkey {
+            background: rgba(255,150,100,0.3);
+            font-size: 16px;
+            min-width: 45px;
         }
         
         .modifier-row {
@@ -159,7 +185,39 @@ String html() {
             border-color: #00ff00;
         }
         
+        .modifier-btn.altgr-active {
+            background: rgba(255,165,0,0.5);
+            border-color: #ffa500;
+        }
+        
         .modifier-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .layout-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        
+        .layout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .layout-btn.active-layout {
+            background: rgba(0,255,0,0.5);
+            border-color: #00ff00;
+        }
+        
+        .layout-btn:hover {
             background: rgba(255,255,255,0.3);
         }
         
@@ -243,9 +301,17 @@ String html() {
             margin: 10px 0;
         }
         
+        .nav-arrows {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            max-width: 200px;
+            margin: 10px auto;
+        }
+        
         @media (max-width: 600px) {
             h1 { font-size: 1.8em; }
-            .key { padding: 8px 6px; font-size: 12px; min-width: 25px; }
+            .key { padding: 6px 5px; font-size: 11px; min-width: 28px; }
             .keyboard { gap: 3px; }
             .key-row { gap: 2px; }
         }
@@ -258,7 +324,7 @@ String html() {
         <!-- Status Display -->
         <div id="status" class="status"></div>
         
-        <!-- Modifier Keys -->
+        <!-- Modifier Keys and Layout -->
         <div class="card">
             <h2>🔧 Active Modifiers</h2>
             <div class="modifier-row">
@@ -266,88 +332,79 @@ String html() {
                 <button class="modifier-btn" onclick="toggleModifier('shift')" id="shift-btn">Shift</button>
                 <button class="modifier-btn" onclick="toggleModifier('alt')" id="alt-btn">Alt</button>
                 <button class="modifier-btn" onclick="toggleModifier('gui')" id="gui-btn">Win/Cmd</button>
+                <button class="modifier-btn" onclick="toggleModifier('altgr')" id="altgr-btn">AltGr</button>
             </div>
             <div id="combo-display" class="combo-display">No modifiers active</div>
+            
+            <h3>Keyboard Layout</h3>
+            <div class="layout-toggle">
+                <button class="layout-btn active-layout" onclick="setLayout('qwertz')" id="qwertz-btn">QWERTZ (DE)</button>
+                <button class="layout-btn" onclick="setLayout('qwerty')" id="qwerty-btn">QWERTY (US)</button>
+            </div>
         </div>
         
-        <!-- Full QWERTZ Keyboard -->
+        <!-- Function Keys -->
         <div class="card">
-            <h2>⌨️ QWERTZ Keyboard</h2>
+            <h2>F1 - F12</h2>
+            <div class="key-row">
+                <button class="key fkey" onclick="sendSpecial('f1')">F1</button>
+                <button class="key fkey" onclick="sendSpecial('f2')">F2</button>
+                <button class="key fkey" onclick="sendSpecial('f3')">F3</button>
+                <button class="key fkey" onclick="sendSpecial('f4')">F4</button>
+                <button class="key fkey" onclick="sendSpecial('f5')">F5</button>
+                <button class="key fkey" onclick="sendSpecial('f6')">F6</button>
+                <button class="key fkey" onclick="sendSpecial('f7')">F7</button>
+                <button class="key fkey" onclick="sendSpecial('f8')">F8</button>
+                <button class="key fkey" onclick="sendSpecial('f9')">F9</button>
+                <button class="key fkey" onclick="sendSpecial('f10')">F10</button>
+                <button class="key fkey" onclick="sendSpecial('f11')">F11</button>
+                <button class="key fkey" onclick="sendSpecial('f12')">F12</button>
+            </div>
+        </div>
+        
+        <!-- Navigation & Arrow Keys -->
+        <div class="card">
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <!-- Navigation Keys -->
+                <div>
+                    <h3>Navigation</h3>
+                    <div class="key-row">
+                        <button class="key navkey" onclick="sendSpecial('printscreen')">PrtSc</button>
+                        <button class="key navkey" onclick="sendSpecial('scrolllock')">ScrLk</button>
+                        <button class="key navkey" onclick="sendSpecial('pause')">Pause</button>
+                    </div>
+                    <div class="key-row" style="margin-top: 5px;">
+                        <button class="key navkey" onclick="sendSpecial('insert')">Ins</button>
+                        <button class="key navkey" onclick="sendSpecial('home')">Home</button>
+                        <button class="key navkey" onclick="sendSpecial('pageup')">PgUp</button>
+                    </div>
+                    <div class="key-row" style="margin-top: 5px;">
+                        <button class="key navkey" onclick="sendSpecial('delete')">Del</button>
+                        <button class="key navkey" onclick="sendSpecial('end')">End</button>
+                        <button class="key navkey" onclick="sendSpecial('pagedown')">PgDn</button>
+                    </div>
+                </div>
+                
+                <!-- Arrow Keys -->
+                <div>
+                    <h3>Arrow Keys</h3>
+                    <div class="nav-arrows">
+                        <div></div>
+                        <button class="key arrowkey" onclick="sendSpecial('up')">⬆</button>
+                        <div></div>
+                        <button class="key arrowkey" onclick="sendSpecial('left')">⬅</button>
+                        <button class="key arrowkey" onclick="sendSpecial('down')">⬇</button>
+                        <button class="key arrowkey" onclick="sendSpecial('right')">➡</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Full Keyboard -->
+        <div class="card">
+            <h2>⌨️ Main Keyboard</h2>
             <div class="keyboard" id="keyboard">
-                <!-- Row 1: Numbers -->
-                <div class="key-row">
-                    <button class="key" onclick="sendKey('`')">`</button>
-                    <button class="key" onclick="sendKey('1')">1</button>
-                    <button class="key" onclick="sendKey('2')">2</button>
-                    <button class="key" onclick="sendKey('3')">3</button>
-                    <button class="key" onclick="sendKey('4')">4</button>
-                    <button class="key" onclick="sendKey('5')">5</button>
-                    <button class="key" onclick="sendKey('6')">6</button>
-                    <button class="key" onclick="sendKey('7')">7</button>
-                    <button class="key" onclick="sendKey('8')">8</button>
-                    <button class="key" onclick="sendKey('9')">9</button>
-                    <button class="key" onclick="sendKey('0')">0</button>
-                    <button class="key" onclick="sendKey('-')">-</button>
-                    <button class="key" onclick="sendKey('=')">=</button>
-                    <button class="key wide special" onclick="sendSpecial('backspace')">⌫</button>
-                </div>
-                <!-- Row 2: QWERTZ -->
-                <div class="key-row">
-                    <button class="key wide special" onclick="sendSpecial('tab')">Tab</button>
-                    <button class="key" onclick="sendKey('q')">Q</button>
-                    <button class="key" onclick="sendKey('w')">W</button>
-                    <button class="key" onclick="sendKey('e')">E</button>
-                    <button class="key" onclick="sendKey('r')">R</button>
-                    <button class="key" onclick="sendKey('t')">T</button>
-                    <button class="key" onclick="sendKey('z')">Z</button>
-                    <button class="key" onclick="sendKey('u')">U</button>
-                    <button class="key" onclick="sendKey('i')">I</button>
-                    <button class="key" onclick="sendKey('o')">O</button>
-                    <button class="key" onclick="sendKey('p')">P</button>
-                    <button class="key" onclick="sendKey('[')">[</button>
-                    <button class="key" onclick="sendKey(']')">]</button>
-                </div>
-                <!-- Row 3: ASDF -->
-                <div class="key-row">
-                    <button class="key wide special" onclick="sendSpecial('capslock')">Caps</button>
-                    <button class="key" onclick="sendKey('a')">A</button>
-                    <button class="key" onclick="sendKey('s')">S</button>
-                    <button class="key" onclick="sendKey('d')">D</button>
-                    <button class="key" onclick="sendKey('f')">F</button>
-                    <button class="key" onclick="sendKey('g')">G</button>
-                    <button class="key" onclick="sendKey('h')">H</button>
-                    <button class="key" onclick="sendKey('j')">J</button>
-                    <button class="key" onclick="sendKey('k')">K</button>
-                    <button class="key" onclick="sendKey('l')">L</button>
-                    <button class="key" onclick="sendKey(';')">;</button>
-                    <button class="key" onclick="sendKey('\'')">'</button>
-                    <button class="key extra-wide special" onclick="sendSpecial('enter')">Enter ↵</button>
-                </div>
-                <!-- Row 4: YXCV -->
-                <div class="key-row">
-                    <button class="key extra-wide special" onclick="sendSpecial('shift')">Shift</button>
-                    <button class="key" onclick="sendKey('y')">Y</button>
-                    <button class="key" onclick="sendKey('x')">X</button>
-                    <button class="key" onclick="sendKey('c')">C</button>
-                    <button class="key" onclick="sendKey('v')">V</button>
-                    <button class="key" onclick="sendKey('b')">B</button>
-                    <button class="key" onclick="sendKey('n')">N</button>
-                    <button class="key" onclick="sendKey('m')">M</button>
-                    <button class="key" onclick="sendKey(',')">,</button>
-                    <button class="key" onclick="sendKey('.')">.</button>
-                    <button class="key" onclick="sendKey('/')">/</button>
-                    <button class="key extra-wide special" onclick="sendSpecial('shift')">Shift</button>
-                </div>
-                <!-- Row 5: Space and modifiers -->
-                <div class="key-row">
-                    <button class="key special" onclick="sendSpecial('ctrl')">Ctrl</button>
-                    <button class="key special" onclick="sendSpecial('gui')">Win</button>
-                    <button class="key special" onclick="sendSpecial('alt')">Alt</button>
-                    <button class="key" onclick="sendKey(' ')" style="min-width: 250px;">Space</button>
-                    <button class="key special" onclick="sendSpecial('altgr')">AltGr</button>
-                    <button class="key special" onclick="sendSpecial('menu')">Menu</button>
-                    <button class="key special" onclick="sendSpecial('ctrl')">Ctrl</button>
-                </div>
+                <!-- Keyboard will be dynamically generated -->
             </div>
         </div>
         
@@ -388,6 +445,8 @@ String html() {
                 <button class="preset-btn" onclick="sendCombo(['ctrl','s'])">💾 Save</button>
                 <button class="preset-btn" onclick="sendCombo(['alt','tab'])">🔄 Alt+Tab</button>
                 <button class="preset-btn" onclick="sendCombo(['ctrl','alt','del'])">🔒 Ctrl+Alt+Del</button>
+                <button class="preset-btn" onclick="sendCombo(['gui','r'])">🏃 Win+R</button>
+                <button class="preset-btn" onclick="sendCombo(['gui','e'])">📁 Win+E</button>
             </div>
         </div>
         
@@ -403,16 +462,112 @@ String html() {
     
     <script>
         let activeModifiers = new Set();
+        let currentLayout = 'qwertz'; // Default layout
+        
+        // Keyboard layouts with different states
+        const layouts = {
+            qwertz: {
+                normal: [
+                    // Row 1: Numbers
+                    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'ß', '´', {key: 'backspace', label: '⌫', special: true, wide: true}],
+                    // Row 2: QWERTZ
+                    [{key: 'tab', label: 'Tab', special: true, wide: true}, 'q', 'w', 'e', 'r', 't', 'z', 'u', 'i', 'o', 'p', 'ü', '+'],
+                    // Row 3: ASDF
+                    [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
+                    // Row 4: YXCV
+                    [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'y', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '-', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
+                    // Row 5: Space
+                    [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
+                ],
+                shift: [
+                    // Row 1: Numbers with shift
+                    ['°', '!', '"', '§', '$', '%', '&', '/', '(', ')', '=', '?', '`', {key: 'backspace', label: '⌫', special: true, wide: true}],
+                    // Row 2: QWERTZ with shift
+                    [{key: 'tab', label: 'Tab', special: true, wide: true}, 'Q', 'W', 'E', 'R', 'T', 'Z', 'U', 'I', 'O', 'P', 'Ü', '*'],
+                    // Row 3: ASDF with shift
+                    [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ö', 'Ä', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
+                    // Row 4: YXCV with shift
+                    [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'Y', 'X', 'C', 'V', 'B', 'N', 'M', ';', ':', '_', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
+                    // Row 5: Space
+                    [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
+                ],
+                altgr: [
+                    // Row 1: Numbers with AltGr
+                    ['`', '1', '²', '³', '4', '5', '6', '{', '[', ']', '}', '\\', '´', {key: 'backspace', label: '⌫', special: true, wide: true}],
+                    // Row 2: QWERTZ with AltGr
+                    [{key: 'tab', label: 'Tab', special: true, wide: true}, '@', 'w', '€', 'r', 't', 'z', 'u', 'i', 'o', 'p', 'ü', '~'],
+                    // Row 3: ASDF with AltGr
+                    [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'ö', 'ä', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
+                    // Row 4: YXCV with AltGr
+                    [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'y', 'x', 'c', 'v', 'b', 'n', 'µ', ',', '.', '-', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
+                    // Row 5: Space
+                    [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
+                ]
+            },
+            qwerty: {
+                normal: [
+                    // Row 1: Numbers
+                    ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', {key: 'backspace', label: '⌫', special: true, wide: true}],
+                    // Row 2: QWERTY
+                    [{key: 'tab', label: 'Tab', special: true, wide: true}, 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']'],
+                    // Row 3: ASDF
+                    [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
+                    // Row 4: ZXCV
+                    [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
+                    // Row 5: Space
+                    [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
+                ],
+                shift: [
+                    // Row 1: Numbers with shift
+                    ['~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', {key: 'backspace', label: '⌫', special: true, wide: true}],
+                    // Row 2: QWERTY with shift
+                    [{key: 'tab', label: 'Tab', special: true, wide: true}, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}'],
+                    // Row 3: ASDF with shift
+                    [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
+                    // Row 4: ZXCV with shift
+                    [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
+                    // Row 5: Space
+                    [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
+                ],
+                altgr: [
+                    // Row 1: Numbers with AltGr (US International)
+                    ['`', '¡', '™', '£', '¢', '∞', '§', '¶', '•', 'ª', 'º', '–', '≠', {key: 'backspace', label: '⌫', special: true, wide: true}],
+                    // Row 2: QWERTY with AltGr
+                    [{key: 'tab', label: 'Tab', special: true, wide: true}, 'œ', '∑', '´', '®', '†', '¥', '¨', 'ˆ', 'ø', 'π', '«', '»'],
+                    // Row 3: ASDF with AltGr
+                    [{key: 'capslock', label: 'Caps', special: true, wide: true}, 'å', 'ß', '∂', 'ƒ', '©', '˙', '∆', '˚', '¬', '…', 'æ', {key: 'enter', label: 'Enter ↵', special: true, extraWide: true}],
+                    // Row 4: ZXCV with AltGr
+                    [{key: 'shift', label: 'Shift', special: true, extraWide: true}, 'Ω', '≈', 'ç', '√', '∫', '˜', 'µ', '≤', '≥', '÷', {key: 'shift', label: 'Shift', special: true, extraWide: true}],
+                    // Row 5: Space
+                    [{key: 'ctrl', label: 'Ctrl', special: true}, {key: 'gui', label: 'Win', special: true}, {key: 'alt', label: 'Alt', special: true}, {key: ' ', label: 'Space', special: false, space: true}, {key: 'altgr', label: 'AltGr', special: true}, {key: 'menu', label: 'Menu', special: true}, {key: 'ctrl', label: 'Ctrl', special: true}]
+                ]
+            }
+        };
+        
+        function setLayout(layout) {
+            currentLayout = layout;
+            document.getElementById('qwertz-btn').classList.remove('active-layout');
+            document.getElementById('qwerty-btn').classList.remove('active-layout');
+            document.getElementById(layout + '-btn').classList.add('active-layout');
+            updateKeyboard();
+        }
         
         function toggleModifier(mod) {
             if (activeModifiers.has(mod)) {
                 activeModifiers.delete(mod);
                 document.getElementById(mod + '-btn').classList.remove('active');
+                if (mod === 'altgr') {
+                    document.getElementById(mod + '-btn').classList.remove('altgr-active');
+                }
             } else {
                 activeModifiers.add(mod);
                 document.getElementById(mod + '-btn').classList.add('active');
+                if (mod === 'altgr') {
+                    document.getElementById(mod + '-btn').classList.add('altgr-active');
+                }
             }
             updateComboDisplay();
+            updateKeyboard();
         }
         
         function updateComboDisplay() {
@@ -422,6 +577,55 @@ String html() {
             } else {
                 display.textContent = 'Active: ' + Array.from(activeModifiers).join(' + ');
             }
+        }
+        
+        function updateKeyboard() {
+            const keyboardDiv = document.getElementById('keyboard');
+            let layoutState = 'normal';
+            
+            // Determine which layout state to show
+            if (activeModifiers.has('altgr')) {
+                layoutState = 'altgr';
+            } else if (activeModifiers.has('shift')) {
+                layoutState = 'shift';
+            }
+            
+            const currentKeys = layouts[currentLayout][layoutState];
+            
+            let keyboardHTML = '';
+            currentKeys.forEach(row => {
+                keyboardHTML += '<div class="key-row">';
+                row.forEach(keyData => {
+                    if (typeof keyData === 'object') {
+                        // Special key
+                        let classes = 'key';
+                        if (keyData.special) classes += ' special';
+                        if (keyData.wide) classes += ' wide';
+                        if (keyData.extraWide) classes += ' extra-wide';
+                        if (keyData.space) classes += ' extra-wide';
+                        
+                        let onClick = '';
+                        if (keyData.special) {
+                            onClick = `onclick="sendSpecial('${keyData.key}')"`;
+                        } else {
+                            onClick = `onclick="sendKey('${keyData.key}')"`;
+                        }
+                        
+                        let style = '';
+                        if (keyData.space) {
+                            style = 'style="min-width: 250px;"';
+                        }
+                        
+                        keyboardHTML += `<button class="${classes}" ${onClick} ${style}>${keyData.label}</button>`;
+                    } else {
+                        // Regular character key
+                        keyboardHTML += `<button class="key" onclick="sendKey('${keyData}')">${keyData}</button>`;
+                    }
+                });
+                keyboardHTML += '</div>';
+            });
+            
+            keyboardDiv.innerHTML = keyboardHTML;
         }
         
         async function sendKey(key) {
@@ -576,10 +780,10 @@ String html() {
         
         // Keyboard shortcuts for modifiers
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Control') toggleModifier('ctrl');
-            if (e.key === 'Shift') toggleModifier('shift');
-            if (e.key === 'Alt') toggleModifier('alt');
-            if (e.key === 'Meta') toggleModifier('gui');
+            if (e.key === 'Control' && !e.repeat) toggleModifier('ctrl');
+            if (e.key === 'Shift' && !e.repeat) toggleModifier('shift');
+            if (e.key === 'Alt' && !e.repeat) toggleModifier('alt');
+            if (e.key === 'Meta' && !e.repeat) toggleModifier('gui');
         });
         
         document.addEventListener('keyup', (e) => {
@@ -588,6 +792,9 @@ String html() {
             if (e.key === 'Alt' && activeModifiers.has('alt')) toggleModifier('alt');
             if (e.key === 'Meta' && activeModifiers.has('gui')) toggleModifier('gui');
         });
+        
+        // Initialize keyboard
+        updateKeyboard();
     </script>
 </body>
 </html>
@@ -600,6 +807,7 @@ void pressModifierKey(String key) {
     else if (key == "shift") Keyboard.press(KEY_LEFT_SHIFT);
     else if (key == "alt") Keyboard.press(KEY_LEFT_ALT);
     else if (key == "gui") Keyboard.press(KEY_LEFT_GUI);
+    else if (key == "altgr") Keyboard.press(KEY_RIGHT_ALT);
     else if (key == "tab") Keyboard.press(KEY_TAB);
     else if (key == "enter") Keyboard.press(KEY_RETURN);
     else if (key == "backspace") Keyboard.press(KEY_BACKSPACE);
@@ -620,6 +828,7 @@ void handleKey() {
         if (modifiers.indexOf("shift") >= 0) Keyboard.press(KEY_LEFT_SHIFT);
         if (modifiers.indexOf("alt") >= 0) Keyboard.press(KEY_LEFT_ALT);
         if (modifiers.indexOf("gui") >= 0) Keyboard.press(KEY_LEFT_GUI);
+        if (modifiers.indexOf("altgr") >= 0) Keyboard.press(KEY_RIGHT_ALT);
         
         // Send the key
         if (key.length() == 1) {
@@ -645,13 +854,53 @@ void handleSpecial() {
         if (modifiers.indexOf("shift") >= 0) Keyboard.press(KEY_LEFT_SHIFT);
         if (modifiers.indexOf("alt") >= 0) Keyboard.press(KEY_LEFT_ALT);
         if (modifiers.indexOf("gui") >= 0) Keyboard.press(KEY_LEFT_GUI);
+        if (modifiers.indexOf("altgr") >= 0) Keyboard.press(KEY_RIGHT_ALT);
         
-        // Send special key
-        if (key == "enter") Keyboard.write(KEY_RETURN);
+        // Function keys
+        if (key == "f1") Keyboard.write(KEY_F1);
+        else if (key == "f2") Keyboard.write(KEY_F2);
+        else if (key == "f3") Keyboard.write(KEY_F3);
+        else if (key == "f4") Keyboard.write(KEY_F4);
+        else if (key == "f5") Keyboard.write(KEY_F5);
+        else if (key == "f6") Keyboard.write(KEY_F6);
+        else if (key == "f7") Keyboard.write(KEY_F7);
+        else if (key == "f8") Keyboard.write(KEY_F8);
+        else if (key == "f9") Keyboard.write(KEY_F9);
+        else if (key == "f10") Keyboard.write(KEY_F10);
+        else if (key == "f11") Keyboard.write(KEY_F11);
+        else if (key == "f12") Keyboard.write(KEY_F12);
+        
+        // Navigation keys - using alternative key codes
+        else if (key == "printscreen") {
+            // Print Screen - often works with Shift+F13 or just send the key
+            Keyboard.write(KEY_F13); // Some systems use F13 for Print Screen
+        }
+        else if (key == "scrolllock") {
+            // Scroll Lock
+            Keyboard.write(KEY_F14); // Some systems use F14 for Scroll Lock
+        }
+        else if (key == "pause") {
+            // Pause/Break
+            Keyboard.write(KEY_F15); // Some systems use F15 for Pause
+        }
+        else if (key == "insert") Keyboard.write(KEY_INSERT);
+        else if (key == "home") Keyboard.write(KEY_HOME);
+        else if (key == "pageup") Keyboard.write(KEY_PAGE_UP);
+        else if (key == "delete") Keyboard.write(KEY_DELETE);
+        else if (key == "end") Keyboard.write(KEY_END);
+        else if (key == "pagedown") Keyboard.write(KEY_PAGE_DOWN);
+        
+        // Arrow keys
+        else if (key == "up") Keyboard.write(KEY_UP_ARROW);
+        else if (key == "down") Keyboard.write(KEY_DOWN_ARROW);
+        else if (key == "left") Keyboard.write(KEY_LEFT_ARROW);
+        else if (key == "right") Keyboard.write(KEY_RIGHT_ARROW);
+        
+        // Other special keys
+        else if (key == "enter") Keyboard.write(KEY_RETURN);
         else if (key == "tab") Keyboard.write(KEY_TAB);
         else if (key == "backspace") Keyboard.write(KEY_BACKSPACE);
         else if (key == "escape") Keyboard.write(KEY_ESC);
-        else if (key == "delete") Keyboard.write(KEY_DELETE);
         else if (key == "capslock") Keyboard.write(KEY_CAPS_LOCK);
         else if (key == "shift") Keyboard.write(KEY_LEFT_SHIFT);
         else if (key == "ctrl") Keyboard.write(KEY_LEFT_CTRL);
@@ -659,19 +908,11 @@ void handleSpecial() {
         else if (key == "gui") Keyboard.write(KEY_LEFT_GUI);
         else if (key == "altgr") Keyboard.write(KEY_RIGHT_ALT);
         else if (key == "menu") {
-            // Simulate menu key with Shift+F10 (common alternative)
+            // Simulate menu key with Shift+F10
             Keyboard.press(KEY_LEFT_SHIFT);
             Keyboard.write(KEY_F10);
             Keyboard.release(KEY_LEFT_SHIFT);
         }
-        else if (key == "home") Keyboard.write(KEY_HOME);
-        else if (key == "end") Keyboard.write(KEY_END);
-        else if (key == "pageup") Keyboard.write(KEY_PAGE_UP);
-        else if (key == "pagedown") Keyboard.write(KEY_PAGE_DOWN);
-        else if (key == "up") Keyboard.write(KEY_UP_ARROW);
-        else if (key == "down") Keyboard.write(KEY_DOWN_ARROW);
-        else if (key == "left") Keyboard.write(KEY_LEFT_ARROW);
-        else if (key == "right") Keyboard.write(KEY_RIGHT_ARROW);
         
         // Release all modifiers
         Keyboard.releaseAll();
